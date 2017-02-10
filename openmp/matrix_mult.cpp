@@ -20,13 +20,11 @@ void multSeq(int a[N][N], int b[N][N], int c[N][N]) {
 }
 
 void multOmp(int a[N][N], int b[N][N], int c[N][N]) {
-    int sum = 0, chunk = 100, tid, i, j, k, n = N;
-    #pragma omp parallel shared(a, b, c, n), private(i, j, k, tid, sum)
+    int sum = 0, i, j, k, n = N;
+    #pragma omp parallel shared(a, b, c, n), private(i, j, k, sum)
     {
-        #pragma omp for schedule(static, chunk)
+        #pragma omp for schedule(static)
         for (i = 0; i < n; i++) {
-            tid = omp_get_thread_num();
-            cout << "Thread Num: " << tid << " Row: " << i << endl;
             for (j = 0; j < n; j++) {
                 sum = 0;
                 for (k = 0; k < n; k++) {
@@ -67,19 +65,19 @@ bool checkResults(int s_c[N][N], int o_c[N][N]) {
 
 int main(int argc, char* argv[]) {
     int a[N][N], b[N][N], s_c[N][N], o_c[N][N];
-    clock_t start_seq, start_omp, end_seq, end_omp;
+    double start_seq, start_omp, end_seq, end_omp;
     initMat(a);
     initMat(b);
 
-    start_seq = clock();
+    start_seq = omp_get_wtime( );
     multSeq(a, b, s_c);
-    end_seq = clock();
+    end_seq = omp_get_wtime( );
 
-    start_omp = clock();
+    start_omp = omp_get_wtime( );
     multOmp(a, b, o_c);
-    end_omp = clock();
-    double seq_time = (double)(end_seq - start_seq) / CLOCKS_PER_SEC;
-    double omp_time = (double)(end_omp - start_omp) / CLOCKS_PER_SEC;
+    end_omp = omp_get_wtime( );
+    double seq_time = end_seq - start_seq;
+    double omp_time = end_omp - start_omp;
 
     if (checkResults(s_c, o_c)) {
         cout << "Correct multiplication" << endl;
