@@ -2,28 +2,30 @@
 #include <stdlib.h>
 #include <mpi.h>
 #define MASTER 0
-#define ROWA 5
-#define COLA 5
+#define ROWA 2
+#define COLA 2
 #define ROWB COLA
-#define COLB 4
+#define COLB 3
 #define MULT_TAG 0
 #define RESULT_TAG 1
 
 void fillRandMat(int *x, int row_size, int col_size) {
   for (int i = 0; i < row_size; i++) {
     for (int j = 0; j < col_size; j++) {
-      x[j + i * col_size] = rand() % 50;
+      x[j + i * col_size] = rand() % 20;
     }
   }
 }
 
-void showMat(int *x, int row_size, int col_size) {
+void showMat(int *x, int row_size, int col_size, char *name) {
+  printf("%s = [", name);
   for (int i = 0; i < row_size; i++) {
     for (int j = 0; j < col_size; j++) {
       printf("%d ", x[j + i * col_size]);
     }
-    printf("\n");
+    printf(";\n");
   }
+  printf("]");
   printf("\n");
 }
 
@@ -61,8 +63,8 @@ int main() {
     fillRandMat(mat_a, ROWA, COLA);
     fillRandMat(mat_b, ROWB, COLB);
     trans(mat_b, trans_b, ROWB, COLB);
-    showMat(mat_a, ROWA, COLA);
-    showMat(mat_b, ROWB, COLB);
+    showMat(mat_a, ROWA, COLA, "A");
+    showMat(mat_b, ROWB, COLB, "B");
     for (int i = 1; i < world_size; i++) {
       MPI_Send(mat_a, ROWA * COLA, MPI_INT, i, MULT_TAG, MPI_COMM_WORLD);
       MPI_Send(trans_b + (i - 1) * (chunk_cols * ROWB), chunk_cols * ROWB, MPI_INT, i, MULT_TAG, MPI_COMM_WORLD);
@@ -79,11 +81,9 @@ int main() {
     }
 
     trans(trans_c, mat_c, COLB, ROWA);
-    showMat(mat_c, ROWA, COLB);
-    free(mat_a);
-    free(mat_b);
-    free(mat_c);
-    free(trans_b);
+    showMat(mat_c, ROWA, COLB, "C");
+    free(mat_a); free(mat_b); free(mat_c);
+    free(trans_b); free(trans_c);
   } else {
     int *mat_a_proc = (int *) malloc(ROWA * COLA * sizeof(int));
     int *cols = (int *) malloc(chunk_cols * ROWB * sizeof(int));
@@ -98,5 +98,6 @@ int main() {
     free(cols);
     free(result);
   }
+  MPI_Finalize();
   return 0;
 }
