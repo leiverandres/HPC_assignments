@@ -3,7 +3,7 @@
 #include <cuda.h>
 #include <math.h>
 #include <time.h>
-#define N 20
+#define N 1024
 
 void seqSum(int *a, int *b, int *c, int size) {
   for (int i = 0; i < size; i++)
@@ -35,6 +35,7 @@ __global__ void deviceAddVector(int *d_a, int *d_b, int *d_c, int size) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   if (i < size) {
     d_c[i] = d_a[i] + d_b[i];
+    //  printf("Tread %d make sum %d + %d = %d", i, d_a[i], d_b[i], d_c[i]);
   }
 }
 
@@ -45,7 +46,7 @@ void checkCudaError(cudaError_t err) {
   } 
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   int *h_a, *h_b, *h_c1, *h_c2;
   int *d_a, *d_b, *d_c;
   size_t num_bytes = N * sizeof(int);
@@ -73,16 +74,17 @@ int main() {
 
   seqSum(h_a, h_b, h_c1, N);
 
-  showVec(h_a, N); showVec(h_b, N); showVec(h_c1, N);
+  // showVec(h_a, N); showVec(h_b, N); showVec(h_c1, N);
 
-  int block_size = 256;
+  int block_size = min(256, N);
   int num_blocks = ceil(N / block_size);
+  printf("%d blocks, %d per threads per block\n", num_blocks, block_size);
   deviceAddVector<<<num_blocks, block_size>>>(d_a, d_b, d_c, N);
 
   cudaError_t err_cpy_c = cudaMemcpy(h_c2, d_c, num_bytes, cudaMemcpyDeviceToHost);
   
   checkCudaError(err_cpy_c);
-  showVec(h_c2, N);
+  // showVec(h_c2, N);
   compareResults(h_c1, h_c2, N);
   
   free(h_a); free(h_b); free(h_c1); free(h_c2);
