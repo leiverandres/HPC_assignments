@@ -1,8 +1,11 @@
 #include <stdio.h>
-#include <cv.h>
 #include <cuda.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <iostream>
 
 using namespace std;
+using namespace cv;
 
 #define BLUE 0
 #define GREEN 1
@@ -18,18 +21,19 @@ void checkCudaError(cudaError_t err) {
   }
 }
 
-__global__ ImageToGrayscale(unsigned char *d_img, unsigned char *d_gray, int rows, int cols) {
+__global__ 
+void ImageToGrayscale(unsigned char *d_img, unsigned char *d_gray, int cols, int rows) {
   int row = blockIdx.y * blockDim.y + threadIdx.y;
   int col = blockIdx.x * blockDim.x + threadIdx.x;
   if (row < rows && col < cols) {
     int i = row * cols + col;
-    d_gray[i] = B_WEIGHT * img[i * 3 + BLUE] +
-                G_WEIGHT * img[i * 3 + GREEN] +
-                R_WEIGHT * img[i * 3 + RED];
+    d_gray[i] = B_WEIGHT * d_img[i * 3 + BLUE] +
+                G_WEIGHT * d_img[i * 3 + GREEN] +
+                R_WEIGHT * d_img[i * 3 + RED];
   }
 }
 
-SeqImageToGrayscale(unsigned char *h_img, unsigned char *h_gray, int rows, int cols) {
+void SeqImageToGrayscale(unsigned char *h_img, unsigned char *h_gray, int cols, int rows) {
   for (int i = 0; i < rows*cols; i++) {
     h_gray[i] = B_WEIGHT * h_img[i * 3 + BLUE] +
                 G_WEIGHT * h_img[i * 3 + GREEN] +
@@ -51,48 +55,49 @@ int main(int argc, char *argv[]) {
     cout << "Error reading image, it may not exist" << endl;
   }
 
-  int width = img.size().width;
-  int height = img.size().height;
+  int width = img.cols;
+  int height = img.rows;
   int N = width * height;
-  size_t num_bytes = N * 3 * sizeof(unsigned char);
+  size_t size_gray = N * sizeof(unsigned char);
+  size_t size_color = N * 3 * sizeof(unsigned char);
 
-  Mat gray_gpu(width, height, img.type());
-  Mat gray_cpu(width, height, img.type());
+  Mat gray_gpu(height, width, CV_8UC1);
+  Mat gray_cpu(height, width, CV_8UC1);
 
   unsigned char *h_img = img.data;
-  unsigned char *h_gray_img = (unsigned char *) malloc(num_bytes);
-  unsigned char *gray_img = (unsigned char *) malloc(num_bytes);
+  unsigned char *h_gray_img = (unsigned char *) malloc(size_gray);
+  unsigned char *gray_img = (unsigned char *) malloc(size_gray);
   unsigned char *d_img;
   unsigned char *d_gray_img;
 
   cudaError_t err;
-  err = cudaMalloc((void **) &d_img, num_bytes);
+  err = cudaMalloc((void **) &d_img, size_color);
   checkCudaError(err);
-  err = cudaMalloc((void **) &d_gray_img, num_bytes);
+  err = cudaMalloc((void **) &d_gray_img, size_gray);
   checkCudaError(err);
 
   // Image to grayscale in GPU
   startGPU = clock();
 
-  err = cudaMemcpy(d_img, h_img, num_bytes, cudaMemcpyHostToDevice);
-  checkCudaError();
+  err = cudaMemcpy(d_img, h_img, size_color, cudaMemcpyHostToDevice);
+  checkCudaError(err);
 
   int block_size = 32;
   dim3 block_dim(block_size, block_size, 1);
   dim3 grid_dim(ceil(width / float(block_size)), ceil(height / float(block_size)), 1);
 
-  ImgToGrayscale<<<grid_dim, block_dim>>>(d_img, d_gray_img, width, height);
+  ImageToGrayscale<<<grid_dim, block_dim>>>(d_img, d_gray_img, width, height);
   cudaDeviceSynchronize();
 
-  err = cudaMemcpy(h_gray_img, d_gray_img, num_bytes, cudaMemcpyDeviceToHost);
-  checkCudaError();
+  err = cudaMemcpy(h_gray_img, d_gray_img, size_gray, cudaMemcpyDeviceToHost);
+  checkCudaError(err);
 
   endGPU = clock();
 
   // Image to grayscale in CPU
   startCPU = clock();
 
-  SeqImgToGrayscale(h_img, gray_img, width, height);
+  SeqImageToGrayscale(h_img, gray_img, width, height);
 
   endCPU = clock();
 
@@ -116,7 +121,7 @@ int main(int argc, char *argv[]) {
   printf("Time in CPU: %.10f\n",cpu_time_used);
   printf("Acceleration: %.10fX\n", cpu_time_used / gpu_time_used);
 
-  free(h_gray_img_result); free(gray_img_result);
-  cudaFree(d_img); cudaFree(d_gray_img_result);
+  free(h_gray_img); free(gray_img);
+  cudaFree(d_img); cudaFree(d_gray_img);
   return 0;
 }
