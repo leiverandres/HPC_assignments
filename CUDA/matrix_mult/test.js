@@ -15,9 +15,9 @@ clear();
 console.log(`Executable set 1 filename: ${set1_filename}`);
 console.log(`Executable set 2 filename: ${set2_filename}`);
 console.log(`Number of tests: ${num_tests}`);
-let a_rows = 2600;
-let a_cols = 2600;
-let b_cols = 2600;
+let a_rows = 100;
+let a_cols = 100;
+let b_cols = 100;
 let data1 = [];
 let data2 = [];
 let labels = [];
@@ -25,7 +25,7 @@ let labels = [];
 for (let i = 0; i < num_tests; i++) {
   let data1_times = [];
   let data2_times = [];
-  for (let j = 0; j < 3; j++) {
+  for (let j = 0; j < 20; j++) {
     let stdout1 = exec(`${set1_filename} ${a_rows} ${a_cols} ${b_cols}`);
     let stdout2 = exec(`${set2_filename} ${a_rows} ${a_cols} ${b_cols}`);
     data1_times[j] = Number(stdout1.toLocaleString());

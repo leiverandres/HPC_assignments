@@ -1,7 +1,7 @@
 gpu_exec_name = ./matrix_mult.out
 cpu_exec_name = ./seq_matrix_mult.out
 shared_exec_name = ./shared_matrix_mult.out
-num_tests = 2
+num_tests = 7
 
 build-files: cuda seq shared
 
