@@ -1,0 +1,17 @@
+{
+  "name": "matrix_mult",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "dependencies": {
+    "clear": "0.0.1",
+    "mathjs": "^3.10.3",
+    "plotly": "^1.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo 'No tests'"
+  },
+  "author": "Leiver Andres Campeón <leiverandres04p@hotmail.com>",
+  "license": "ISC"
+}
