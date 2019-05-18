@@ -113,17 +113,17 @@ int main(int argc, char *argv[])
     {
         waitpid(child_process[t], &pid_status[t], 0);
     }
-    display(mat1);
-    display(mat2);
-    display(result, size);
+    // display(mat1);
+    // display(mat2);
+    // display(result, size);
     // display(result);
 
-    // auto finish = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<float> elapsed = finish - start;
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> elapsed = finish - start;
 
     // display(result);
 
-    // cout << size << " : " << elapsed.count() << endl;
+    cout << size << " : " << elapsed.count() << endl;
 
     return 0;
 }
