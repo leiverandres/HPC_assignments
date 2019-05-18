@@ -30,12 +30,19 @@ threads_time_filename = "./th_times.txt"
 process_time_filename = "./proc_times.txt"
 
 if __name__ == "__main__":
-    files = [seq_time_filename, threads_time_filename, process_time_filename]
-    for filename in files:
-        times_collector = parse_times_file(filename)
+    files = [
+        # {"file": seq_time_filename, "chartName": "sequential"},
+        {"file": threads_time_filename, "chartName": "threads"},
+        # {"file": process_time_filename, "chartName": "processes"},
+    ]
+    for fileinfo in files:
+        print(f"Reading {fileinfo['file']}")
+        times_collector = parse_times_file(fileinfo["file"])
         sizes, times = get_mean_times(times_collector)
-        plt.plot(sizes, times)
+        print(list(zip(sizes, times)))
+        plt.plot(sizes, times, color="orange")
+    plt.legend([fileinfo["chartName"] for fileinfo in files])
     plt.ylabel("Mean time (sec)")
     plt.xlabel("Size of square matrix")
-    plt.savefig("times.png")
+    plt.savefig("times_threads.png")
     plt.show()
