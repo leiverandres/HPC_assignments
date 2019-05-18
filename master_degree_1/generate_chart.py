@@ -27,14 +27,14 @@ def get_mean_times(times_by_size):
 
 seq_time_filename = "./times.txt"
 threads_time_filename = "./th_times.txt"
+process_time_filename = "./proc_times.txt"
 
 if __name__ == "__main__":
-    seq_times_collector = parse_times_file(seq_time_filename)
-    th_times_collector = parse_times_file(threads_time_filename)
-    seq_sizes, seq_times = get_mean_times(seq_times_collector)
-    th_sizes, th_times = get_mean_times(th_times_collector)
-    plt.plot(seq_sizes, seq_times, color="#ffa600")
-    plt.plot(th_sizes, th_times)
+    files = [seq_time_filename, threads_time_filename, process_time_filename]
+    for filename in files:
+        times_collector = parse_times_file(filename)
+        sizes, times = get_mean_times(times_collector)
+        plt.plot(sizes, times)
     plt.ylabel("Mean time (sec)")
     plt.xlabel("Size of square matrix")
     plt.savefig("times.png")
