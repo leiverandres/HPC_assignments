@@ -1,3 +1,5 @@
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
 #include <stdlib.h>
 #include <chrono>
@@ -20,7 +22,7 @@ void display( vector< vector <int> > &mat) {
 vector< vector<int> > matMul(vector< vector <int> > &mat1, vector< vector <int> > &mat2) {
     int size = mat1.size();
 
-    vector< vector<int>> result(size, vector<int>(size));
+    vector< vector<int> > result(size, vector<int>(size));
     fill(result.begin(), result.end(), vector<int>(size, 0));
     
     // Multiplying matrix aMat and secondMatrix and storing in array mult.
@@ -47,6 +49,7 @@ void fillMat(vector< vector <int> > &mat) {
 
 int main(int argc, char* argv[]) {
     // TODO get shape from params
+    srand(time(0));
     int size = atoi(argv[1]);
     vector< vector <int> > mat1(size, vector<int>(size));
     vector< vector <int> > mat2(size, vector<int>(size));
